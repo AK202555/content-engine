@@ -66,9 +66,9 @@ GITHUB_REPOS = [
 PIPELINE_REQUIRED_SKILLS: dict[str, set[str]] = {
     "alirezarezvani/claude-skills": {
         # Stage 1
-        "persona", "competitive-intel", "research-summarizer",
+        "competitive-intel",
         # Stage 2
-        "content-strategist", "brand-guidelines", "okr", "strategic-alignment",
+        "brand-guidelines", "okr",
         # Stage 4
         "cs-demand-gen-specialist",
         # Stage 5
@@ -225,15 +225,14 @@ class GitHubFetcher:
         Если да — возвращает URL реального файла в том же репозитории.
         Пример: "../../../marketing-skill/ab-test-setup/SKILL.md"
         """
+        import posixpath
         stripped = content.strip()
         # Ссылка — одна строка, является путём (содержит / и .md, нет пробелов)
         if "\n" not in stripped and "/" in stripped and stripped.endswith(".md") and " " not in stripped:
-            # Разрешаем относительный путь от текущего расположения SKILL.md
-            base = Path(skill_md_path).parent
-            resolved = (base / stripped).resolve()
-            # Нормализуем: убираем leading /
-            resolved_str = str(resolved).lstrip("/")
-            raw_url = f"https://raw.githubusercontent.com/{repo}/HEAD/{resolved_str}"
+            # Нормализуем путь внутри репо через posixpath — без обращения к ФС
+            base_dir = posixpath.dirname(skill_md_path)
+            resolved = posixpath.normpath(posixpath.join(base_dir, stripped))
+            raw_url = f"https://raw.githubusercontent.com/{repo}/HEAD/{resolved}"
             return raw_url
         return None
 

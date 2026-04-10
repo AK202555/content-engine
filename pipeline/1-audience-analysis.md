@@ -31,19 +31,14 @@
 Загружать в указанном порядке:
 
 1. **customer-research** (`coreyhaines31__marketingskills__customer-research`)
-   Фрейм: эксперт по исследованию B2B-покупателей для консалтинговой практики / личного бренда.
+   Фрейм: эксперт по исследованию B2B-покупателей — JTBD, VOC, персоны, review mining.
+   Покрывает: сбор данных, анализ, построение персон и синтез в отчёт.
 
-2. **persona** (`alirezarezvani__claude-skills__persona`)
-   Фрейм: построить обоснованные исследованием персоны на основе синтеза данных о клиентах.
-
-3. **competitive-intel** (`alirezarezvani__claude-skills__competitive-intel`)
+2. **competitive-intel** (`alirezarezvani__claude-skills__competitive-intel`)
    Фрейм: картировать конкурентное поле — кто ещё обслуживает эту аудиторию, что говорит, где слаб.
 
-4. **marketing-psychology** (`coreyhaines31__marketingskills__marketing-psychology`)
+3. **marketing-psychology** (`coreyhaines31__marketingskills__marketing-psychology`)
    Фрейм: добавить психологический слой — какие когнитивные рамки, страхи и желания движут решениями.
-
-5. **research-summarizer** (`alirezarezvani__claude-skills__research-summarizer`)
-   Фрейм: синтезировать все находки в чистый структурированный отчёт.
 
 ---
 
@@ -74,7 +69,7 @@
 
 ### Шаг 3 — Построить профили персон
 
-Используя skill persona, создать 1–3 персоны только на основе данных из Шага 2.
+Используя фреймворк customer-research, создать 1–3 персоны только на основе данных из Шага 2.
 Не выдумывать детали персон. Если данных недостаточно для поля — оставить пустым.
 
 Каждая персона должна включать:
@@ -112,7 +107,7 @@
 
 ### Шаг 6 — Синтез и сохранение
 
-Используя skill research-summarizer, скомпилировать все находки в выходные файлы ниже.
+Используя фреймворк customer-research, скомпилировать все находки в выходные файлы ниже.
 
 ---
 
