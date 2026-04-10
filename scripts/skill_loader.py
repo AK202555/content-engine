@@ -59,6 +59,27 @@ GITHUB_REPOS = [
     ("spences10/awesome-claude-skills", None),     # наиболее вероятный формат awesome-списка
 ]
 
+# ─── Обязательные скиллы пайплайна ───────────────────────────────────────────
+# Скиллы, явно используемые в pipeline/*.md — устанавливаются независимо от
+# path_prefix и минуя AI-фильтр релевантности. Проверка безопасности остаётся.
+
+PIPELINE_REQUIRED_SKILLS: dict[str, set[str]] = {
+    "alirezarezvani/claude-skills": {
+        # Stage 1
+        "persona", "competitive-intel", "research-summarizer",
+        # Stage 2
+        "content-strategist", "brand-guidelines", "okr", "strategic-alignment",
+        # Stage 4
+        "cs-demand-gen-specialist",
+        # Stage 5
+        "campaign-analytics", "social-media-analyzer", "saas-metrics-coach", "cro-advisor",
+    },
+    "coreyhaines31/marketingskills": {
+        # Stage 5
+        "ab-test-setup",
+    },
+}
+
 # ─── Фильтры релевантности (pre-filter по имени до скачивания) ────────────────
 
 RELEVANT_KEYWORDS = {
@@ -145,15 +166,24 @@ class GitHubFetcher:
             logger.warning(f"[{repo}] Не удалось получить дерево репозитория")
             return found
 
-        # Ищем SKILL.md файлы, опционально фильтруя по префиксу пути
+        # Имена обязательных скиллов для этого репо
+        required_names = PIPELINE_REQUIRED_SKILLS.get(repo, set())
+
+        # Ищем SKILL.md файлы:
+        # — в path_prefix (если задан), ИЛИ
+        # — с именем папки из PIPELINE_REQUIRED_SKILLS (независимо от пути)
         skill_md_paths = [
             item for item in data["tree"]
             if item.get("type") == "blob"
             and item["path"].upper().endswith("SKILL.MD")
-            and (path_prefix is None or item["path"].startswith(path_prefix))
+            and (
+                path_prefix is None
+                or item["path"].startswith(path_prefix)
+                or Path(item["path"]).parent.name in required_names
+            )
         ]
         if path_prefix:
-            logger.info(f"[{repo}] Ограничен папкой: {path_prefix}")
+            logger.info(f"[{repo}] Ограничен папкой: {path_prefix} + {len(required_names)} обязательных скиллов")
 
         for item in skill_md_paths:
             skill_path = Path(item["path"])
@@ -732,7 +762,18 @@ class SkillLoader:
             row["security"] = "SKIPPED"
 
         # ── AI Relevance ────────────────────────────────────────────────────
-        if self.ai:
+        # Обязательные скиллы пайплайна пропускают фильтр релевантности —
+        # они нужны независимо от оценки AI.
+        skill_base_name = skill_name.split("__")[-1]
+        is_pipeline_required = any(
+            skill_base_name in names
+            for names in PIPELINE_REQUIRED_SKILLS.values()
+        )
+
+        if is_pipeline_required:
+            row["relevance"] = "REQUIRED"
+            row["category"] = "pipeline"
+        elif self.ai:
             rel = self.ai.relevance_check(skill_content)
             row["relevance"] = rel["result"]
             row["category"] = rel["category"]
